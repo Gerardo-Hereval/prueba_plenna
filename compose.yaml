@@ -1,0 +1,47 @@
+services:
+  plenna-app:
+    build:
+      context: ./app
+    ports:
+      - 3000:3000
+      - 35729:35729
+    environment:
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: password
+      DB_NAME: plennadb
+    depends_on:
+      - db
+    develop:
+      watch:
+        - path: ./app/package.json
+          action: rebuild
+        - path: ./app
+          target: /usr/src/app
+          action: sync
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: plennadb
+    ports:
+      - 27017:27017
+    volumes:
+      - db_data:/var/lib/mysql
+
+  test:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    environment:
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: password
+      DB_NAME: plennadb
+    depends_on:
+      - db
+    command: npm run test
+
+volumes:
+    db_data:
